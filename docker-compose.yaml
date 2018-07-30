@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  splunk:
+    hostname: splunk
+    image: splunk/splunk:7.1.2
+    environment:
+      SPLUNK_START_ARGS: --accept-license --seed-passwd admin123
+      SPLUNK_ENABLE_LISTEN: 9997
+    ports:
+      - '8000:8000' # splunk UI
+
+  splunkforwarder:
+    hostname: splunkforwarder
+    image: splunk/splunk:7.1.2
+    environment:
+      SPLUNK_START_ARGS: --accept-license --seed-passwd admin123
+      SPLUNK_FORWARD_SERVER: 'splunk:9997'
+    ports:
+      - '8888:8000' # splunk UI
+      - '8010:8010'
+    volumes:
+      - './volumes/modinput_prometheus:/opt/splunk/etc/apps/modinput_prometheus'
+      - './volumes/splunk-hf-prometheus-input/default:/opt/splunk/etc/apps/modinput_prometheus/local'
+
+  prometheus:
+    hostname: prometheus
+    image: prom/prometheus:v2.3.2
+    ports:
+      - '9090:9090'
+    links:
+      - 'splunkforwarder'
+      - 'fluentbit'
+    volumes:
+      - './volumes/prometheus:/etc/prometheus'
+
+  fluentbit:
+     hostname: fluentbit
+     image: fluent/fluent-bit:0.13.2
+     volumes:
+       - './volumes/fluent-bit-etc:/fluent-bit/etc'
+

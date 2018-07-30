@@ -1,0 +1,7 @@
+groups:
+  - name: recording_rules
+    interval: 5s
+    rules:
+      - record: fluentbit:idt
+        expr: sum(rate(fluentbit_input_records_total[5m])) - sum(rate(fluentbit_output_proc_records_total[5m]))
+
